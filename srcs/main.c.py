@@ -6,37 +6,8 @@ import user_input
 import utils
 import yt_dlp as youtube_dl
 from tqdm import tqdm
-
-
-def retry(times, exceptions):
-    """
-    Retry Decorator
-    Retries the wrapped function/method `times` times if the exceptions listed
-    in ``exceptions`` are thrown
-    :param times: The number of times to repeat the wrapped function/method
-    :type times: Int
-    :param exceptions: Lists of exceptions that trigger a retry attempt
-    :type exceptions: Tuple of Exceptions
-    """
-
-    def decorator(func):
-        def newfn(*args, **kwargs):
-            attempt = 0
-            while attempt < times:
-                try:
-                    return func(*args, **kwargs)
-                except exceptions:
-                    args_str = ", ".join(args)
-                    if kwargs:
-                        kwargs_str = ", ".join(f"{key}={val}" for key, val in kwargs.items())
-                        args_str += ", " + kwargs_str
-                    attempt += 1
-                    print(f"Exception when running {func.__name__}({args_str}); retrying {attempt}/{times}")
-            return func(*args, **kwargs)
-
-        return newfn
-
-    return decorator
+from wininhibit import WindowsInhibitor
+from decorators import retry, anti_sleep
 
 
 def get_playlist_urls(playlist_url: str) -> list[str]:
@@ -88,7 +59,7 @@ def download_playlist_videos(playlist_urls: list[str], download_indexes: list[in
         download_video(url, output_dir)
 
 
-def main():
+def get_args():
     playlist_url = ""
     playlist_urls = []
     while not playlist_urls:
@@ -96,21 +67,28 @@ def main():
         playlist_urls = get_playlist_urls(playlist_url)
     download_indexes = user_input.get_songs_to_download(len(playlist_urls))
     if not download_indexes:
-        print("Aborted")
-        return
+        return None
     output_dir = easygui.diropenbox("Choose Download Location", default=utils.get_windows_downloads_path())
     if not output_dir:
-        print("Aborted")
-        return
+        return None
     print("""Playlist url: {}\nTotal songs: {}\nDownloading songs: {}\nOutput dir: {}""".format(
         playlist_url,
         len(playlist_urls),
         len(download_indexes),
         output_dir
     ))
-    if input("Confirm? [Y/n]: ").lower() in ['y', 'yes', 'confirm']:
-        download_playlist_videos(playlist_urls, download_indexes, output_dir)
+    return playlist_urls, download_indexes, output_dir
+
+
+@anti_sleep
+def main():
+    args = get_args()
+
+    if args and utils.get_confirmation("Continue?"):
+        download_playlist_videos(*args)
         print("Completed")
+    else:
+        print("Cancelled")
 
 
 if __name__ == '__main__':
@@ -120,4 +98,6 @@ if __name__ == '__main__':
             main()
         except KeyboardInterrupt:
             print("Cancelled", end='')
-        running = input("input [c] to continue, any other key to exit") == 'c'
+            if utils.get_confirmation("exit?") is True:
+                running = False
+

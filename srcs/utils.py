@@ -16,6 +16,17 @@ def get_windows_downloads_path() -> str:
         raise OSError(f"Error retrieving download path: {e}")
 
 
+def get_confirmation(message="Are you sure?"):
+    message += " [Y/n]: "
+    while True:
+        user_input = input(message).strip().lower()
+        if user_input in ['yes', 'y']:
+            return True
+        elif user_input in ['no', 'n']:
+            return False
+        else:
+            print("Please enter 'y' for yes or 'n' for no.")
+
 if __name__ == '__main__':
     download_path = get_windows_downloads_path()
     print("Default download path:", download_path)
