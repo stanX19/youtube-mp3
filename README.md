@@ -1,13 +1,13 @@
 # youtube-mp3
 
-python script using `youtube-dl` to download entire playlist from youtube as mp3 files.
+python script to download playlist from youtube as mp3.
 
-`youtube-dl` didnt provide an option to properly retry on download failures. So I did it myself.
+`youtube-dl` didnt provide an option to properly retry on download failures. So I had to do it myself.
 
 ## setup
 
 ```commandline
-py -m pip install -r requirements. txt
+py -m pip install -r requirements.txt
 ```
 
 ## usage
