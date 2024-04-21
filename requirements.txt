@@ -1,0 +1,4 @@
+colorama==0.4.6
+easygui==0.98.3
+tqdm==4.66.2
+youtube-dl==2021.12.17
