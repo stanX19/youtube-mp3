@@ -14,7 +14,7 @@ def get_playlist_urls(playlist_url: str) -> list[str]:
     ydl_opts = {
         'quiet': True,  # Suppress console output
         'extract_flat': True,  # Extract only URLs, no metadata
-        'logger': logging.Logger("quiet", level=logging.CRITICAL)
+        'logger': logging.Logger("quiet", 60)
     }
 
     with youtube_dl.YoutubeDL(ydl_opts) as ydl:
@@ -47,7 +47,8 @@ def download_video(url: str, output_dir: str):
         'extract_audio': True,
         'quiet': True,  # Suppress console output
         'extract_flat': True,  # Extract only URLs, no metadata
-        'progress_hooks': [my_progressbar.my_hook]
+        'progress_hooks': [my_progressbar.my_hook],
+        'logger': logging.Logger("quiet", level=60)
     }
     with youtube_dl.YoutubeDL(ydl_opts) as ydl:
         ydl.download([url])
@@ -58,6 +59,10 @@ def download_playlist_videos(playlist_urls: list[str], download_indexes: list[in
     for idx in tqdm(download_indexes, "Total progress"):
         url = playlist_urls[idx]
         download_video(url, output_dir)
+
+    # for aesthetics
+    my_progressbar.close_bar()
+    print()
 
 
 def get_args():
@@ -85,7 +90,7 @@ def get_args():
 def main():
     args = get_args()
 
-    if args and utils.get_confirmation("Continue?"):
+    if args:
         download_playlist_videos(*args)
         print("Completed")
     else:
