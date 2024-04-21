@@ -53,6 +53,7 @@ def download_video(url: str, output_dir: str):
         ydl.download([url])
 
 
+@anti_sleep
 def download_playlist_videos(playlist_urls: list[str], download_indexes: list[int], output_dir: str):
     for idx in tqdm(download_indexes, "Total progress"):
         url = playlist_urls[idx]
@@ -63,7 +64,8 @@ def get_args():
     playlist_url = ""
     playlist_urls = []
     while not playlist_urls:
-        playlist_url = input("Playlist url: ")
+        while not playlist_url:
+            playlist_url = input("Playlist url: ")
         playlist_urls = get_playlist_urls(playlist_url)
     download_indexes = user_input.get_songs_to_download(len(playlist_urls))
     if not download_indexes:
@@ -80,7 +82,6 @@ def get_args():
     return playlist_urls, download_indexes, output_dir
 
 
-@anti_sleep
 def main():
     args = get_args()
 

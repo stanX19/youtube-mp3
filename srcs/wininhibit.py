@@ -10,6 +10,9 @@ class WindowsInhibitor:
         self.quiet = quiet
         pass
 
+    def __del__(self):
+        self.uninhibit()
+
     def inhibit(self):
         import ctypes
         ctypes.windll.kernel32.SetThreadExecutionState(
