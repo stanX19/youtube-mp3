@@ -4,7 +4,7 @@ import easygui
 import my_progressbar
 import user_input
 import utils
-import youtube_dl
+import yt_dlp as youtube_dl
 from tqdm import tqdm
 
 
@@ -74,7 +74,8 @@ def download_video(url: str, output_dir: str):
         'outtmpl': output_dir + '/%(title)s.%(ext)s',
         'audio_format': 'mp3',
         'extract_audio': True,
-        'quiet': True,
+        'quiet': True,  # Suppress console output
+        'extract_flat': True,  # Extract only URLs, no metadata
         'progress_hooks': [my_progressbar.my_hook]
     }
     with youtube_dl.YoutubeDL(ydl_opts) as ydl:

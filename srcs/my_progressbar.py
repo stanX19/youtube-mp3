@@ -8,6 +8,12 @@ filename = None
 def my_hook(d):
     global progressbar, filename
     try:
+        if d['status'] != 'downloading':
+            if isinstance(progressbar, tqdm):
+                progressbar.close()
+                progressbar = None
+            return
+
         total = round(float(d['total_bytes']))
         current = round(float(d['downloaded_bytes']))
 
