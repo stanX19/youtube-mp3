@@ -15,9 +15,6 @@ def close_bar():
 def my_hook(d):
     global progressbar, filename
     try:
-        if d['status'] != 'downloading':
-            return
-
         total = round(float(d['total_bytes']))
         current = round(float(d['downloaded_bytes']))
 

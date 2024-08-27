@@ -34,7 +34,7 @@ def retry(times, exceptions):
                         kwargs_str = ", ".join(f"{key}={val}" for key, val in kwargs.items())
                         args_str += ", " + kwargs_str
                     attempt += 1
-                    print(f"Exception when running {func.__name__}({args_str}); retrying {attempt}/{times}")
+                    # print(f"Exception when running {func.__name__}({args_str}); retrying {attempt}/{times}")
             return func(*args, **kwargs)
 
         return newfn

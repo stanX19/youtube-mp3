@@ -1,4 +1,5 @@
 import logging
+import random
 
 import easygui
 import my_progressbar
@@ -10,7 +11,16 @@ from wininhibit import WindowsInhibitor
 from decorators import retry, anti_sleep
 
 
-def get_playlist_urls(playlist_url: str) -> list[str]:
+class UrlData:
+    def __init__(self, title: str, url: str):
+        self.title = title
+        self.url = url
+
+    def __repr__(self):
+        return f"UrlData(title={self.title}, url={self.url})"
+
+
+def get_playlist_urls(playlist_url: str) -> list[UrlData]:
     ydl_opts = {
         'quiet': True,  # Suppress console output
         'extract_flat': True,  # Extract only URLs, no metadata
@@ -25,9 +35,9 @@ def get_playlist_urls(playlist_url: str) -> list[str]:
             return []
 
         if "entries" in result:
-            return [entry['url'] for entry in result['entries']]
-        elif "webpage_url" in result:
-            return [result['webpage_url']]
+            return [UrlData(entry['title'], entry['url']) for entry in result['entries']]
+        elif "webpage_url" in result and "title" in result:
+            return [UrlData(result['title'], result['webpage_url'])]
         else:
             print(list(result))
             return []
@@ -55,19 +65,29 @@ def download_video(url: str, output_dir: str):
 
 
 @anti_sleep
-def download_playlist_videos(playlist_urls: list[str], download_indexes: list[int], output_dir: str):
+def download_playlist_videos(playlist_urls_data: list[UrlData], download_indexes: list[int], output_dir: str):
+    failed: list[tuple[int, str, Exception]] = []
+
     for idx in tqdm(download_indexes, "Total progress"):
-        url = playlist_urls[idx]
-        download_video(url, output_dir)
+        data = playlist_urls_data[idx]
+        try:
+            download_video(data.url, output_dir)
+        except youtube_dl.DownloadError as exc:
+            failed.append((idx, data.title, exc))
 
     # for aesthetics
     my_progressbar.close_bar()
     print()
+    if failed:
+        print("During download, some error occurred. The following songs were skipped")
+    for fail_data in failed:
+        idx, title, exc = fail_data
+        print(f"  {title[:80]:<80} [{idx}]; {exc}")
 
 
 def get_args():
     playlist_url = ""
-    playlist_urls = []
+    playlist_urls: list[UrlData] = []
     while not playlist_urls:
         while not playlist_url:
             playlist_url = input("Playlist url: ")
@@ -87,23 +107,30 @@ def get_args():
     return playlist_urls, download_indexes, output_dir
 
 
-def main():
+def run():
     args = get_args()
 
     if args:
-        download_playlist_videos(*args)
+        urls, indexes, output_dir = args
+        download_playlist_videos(urls, indexes, output_dir)
         print("Completed")
     else:
         print("Cancelled")
 
 
-if __name__ == '__main__':
+def main():
     running = True
     while running:
         try:
-            main()
+            run()
         except KeyboardInterrupt:
             print("Cancelled", end='')
             if utils.get_confirmation("exit?") is True:
                 running = False
+        except BaseException as exc:
+            print(exc)
+            input("press enter to continue")
 
+
+if __name__ == '__main__':
+    main()
